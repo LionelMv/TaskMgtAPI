@@ -9,9 +9,17 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $tasks = $request->user()->tasks()->get();
+        $query = $request->user()->tasks();
 
-        return response()->json($tasks);
+        // Apply status filter if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Paginate results
+        $tasks = $query->paginate($request->input('per_page', 2));
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -32,11 +40,6 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        // Ensure the authenticated user owns this task
-        if ($task->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         // Validate the request
         $request->validate([
             'title' => 'sometimes|string|max:255',
@@ -51,11 +54,6 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        // Ensure the authenticated user owns this task
-        if ($task->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $task->delete();
 
         return response()->json(['message' => 'Task deleted']);

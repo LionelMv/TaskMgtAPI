@@ -13,6 +13,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store']); // Create
     Route::get('/tasks', [TaskController::class, 'index']); // List
-    Route::put('/tasks/{task}', [TaskController::class, 'update']); // Update
-    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']); // Delete
+    Route::middleware('can:update,task')->put('/tasks/{task}', [TaskController::class, 'update']);
+    Route::middleware('can:delete,task')->delete('/tasks/{task}', [TaskController::class, 'destroy']);
 });
